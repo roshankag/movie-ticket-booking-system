@@ -17,46 +17,35 @@ public class Payments {
     private Double paymentAmount;
     private LocalDateTime paymentTime;
     private String paymentStatus;
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Long getBookingId() {
+		return bookingId;
+	}
+	public void setBookingId(Long bookingId) {
+		this.bookingId = bookingId;
+	}
+	public Double getPaymentAmount() {
+		return paymentAmount;
+	}
+	public void setPaymentAmount(Double paymentAmount) {
+		this.paymentAmount = paymentAmount;
+	}
+	public LocalDateTime getPaymentTime() {
+		return paymentTime;
+	}
+	public void setPaymentTime(LocalDateTime paymentTime) {
+		this.paymentTime = paymentTime;
+	}
+	public String getPaymentStatus() {
+		return paymentStatus;
+	}
+	public void setPaymentStatus(String paymentStatus) {
+		this.paymentStatus = paymentStatus;
+	}
 
-    // Getters and setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getBookingId() {
-        return bookingId;
-    }
-
-    public void setBookingId(Long bookingId) {
-        this.bookingId = bookingId;
-    }
-
-    public Double getPaymentAmount() {
-        return paymentAmount;
-    }
-
-    public void setPaymentAmount(Double paymentAmount) {
-        this.paymentAmount = paymentAmount;
-    }
-
-    public LocalDateTime getPaymentTime() {
-        return paymentTime;
-    }
-
-    public void setPaymentTime(LocalDateTime paymentTime) {
-        this.paymentTime = paymentTime;
-    }
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
 }

@@ -20,24 +20,45 @@ public class AuthController {
     @POST
     @Path("/register")
     public Response register(Map<String, String> request) {
-        String username = request.get("username");
-        String email = request.get("email");
-        String password = request.get("password");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String username = request.get("username");
+            String email = request.get("email");
+            String password = request.get("password");
 
-        String result = userService.register(username, email, password);
-        return Response.ok(result).build();
+            String result = userService.register(username, email, password);
+            response.put("message", "Registration successful.");
+            response.put("data", result);
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            response.put("message", "Error occurred during registration: " + e.getMessage());
+            response.put("data", null);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+        }
     }
 
     @POST
     @Path("/login")
     public Response login(Map<String, String> request) {
-        String email = request.get("email");
-        String password = request.get("password");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
 
-        String token = userService.login(email, password);
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-
-        return Response.ok(response).build();
+            String token = userService.login(email, password);
+            if (token != null) {
+                response.put("message", "Login successful.");
+                response.put("data", Map.of("token", token));
+                return Response.ok(response).build();
+            } else {
+                response.put("message", "Invalid email or password.");
+                response.put("data", null);
+                return Response.status(Response.Status.UNAUTHORIZED).entity(response).build();
+            }
+        } catch (Exception e) {
+            response.put("message", "Error occurred during login: " + e.getMessage());
+            response.put("data", null);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+        }
     }
 }

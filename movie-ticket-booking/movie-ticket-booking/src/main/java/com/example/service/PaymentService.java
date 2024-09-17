@@ -31,9 +31,10 @@ public class PaymentService {
     }
 
     public void deletePayment(Long id) {
-        Payments payment = paymentRepository.findById(id);
-        if (payment != null) {
-            paymentRepository.delete(payment);
+        if (paymentRepository.findById(id) != null) {
+            paymentRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Payment not found with ID: " + id);
         }
     }
 }
