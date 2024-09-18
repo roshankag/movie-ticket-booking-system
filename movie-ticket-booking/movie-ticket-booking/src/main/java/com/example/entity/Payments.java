@@ -4,9 +4,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
+@Data  // Lombok annotation to generate getters, setters, equals, hashCode, and toString
+@NoArgsConstructor  // Lombok annotation to generate a no-argument constructor
 public class Payments {
 
     @Id
@@ -17,35 +21,4 @@ public class Payments {
     private Double paymentAmount;
     private LocalDateTime paymentTime;
     private String paymentStatus;
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public Long getBookingId() {
-		return bookingId;
-	}
-	public void setBookingId(Long bookingId) {
-		this.bookingId = bookingId;
-	}
-	public Double getPaymentAmount() {
-		return paymentAmount;
-	}
-	public void setPaymentAmount(Double paymentAmount) {
-		this.paymentAmount = paymentAmount;
-	}
-	public LocalDateTime getPaymentTime() {
-		return paymentTime;
-	}
-	public void setPaymentTime(LocalDateTime paymentTime) {
-		this.paymentTime = paymentTime;
-	}
-	public String getPaymentStatus() {
-		return paymentStatus;
-	}
-	public void setPaymentStatus(String paymentStatus) {
-		this.paymentStatus = paymentStatus;
-	}
-
 }
