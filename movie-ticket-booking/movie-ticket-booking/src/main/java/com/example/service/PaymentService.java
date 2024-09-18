@@ -1,11 +1,12 @@
 package com.example.service;
 
+import java.util.List;
+
 import com.example.entity.Payments;
 import com.example.repository.PaymentRepository;
 
-import jakarta.inject.Inject;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.List;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PaymentService {
@@ -30,11 +31,12 @@ public class PaymentService {
         return paymentRepository.getEntityManager().merge(payment);
     }
 
-    public void deletePayment(Long id) {
-        if (paymentRepository.findById(id) != null) {
-            paymentRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Payment not found with ID: " + id);
+    public boolean deletePayment(Long id) {
+        Payments payment = paymentRepository.findById(id);
+        if (payment != null) {
+            paymentRepository.delete(payment);
+            return true; // Deletion successful
         }
+        return false; // Payment not found
     }
 }

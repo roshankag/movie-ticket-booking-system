@@ -37,7 +37,6 @@ public class SeatService {
     @Transactional
     public Seats updateSeat(Seats seat) {
         // Use the repository to merge the seat.
-        // Note: Ensure the repository has a `merge` method if you need custom merging logic.
         return seatRepository.getEntityManager().merge(seat);
     }
 

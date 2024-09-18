@@ -2,7 +2,6 @@ package com.example.service;
 
 import com.example.entity.Movies;
 import com.example.repository.MovieRepository;
-
 import jakarta.inject.Inject;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;

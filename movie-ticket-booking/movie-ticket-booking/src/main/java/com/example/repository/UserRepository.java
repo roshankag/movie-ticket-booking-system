@@ -1,17 +1,15 @@
 package com.example.repository;
 
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
-
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
+import com.example.entity.Users;
 
 import java.util.Optional;
 
-import com.example.entity.Users;
-
 @ApplicationScoped
-public class UserRepository implements PanacheRepository<Users> {
-	
-	 // Find by username
+public class UserRepository implements PanacheRepositoryBase<Users, Long> {
+    
+    // Find by user name
     public Optional<Users> findByUsername(String username) {
         return find("username", username).firstResultOptional();
     }
@@ -20,5 +18,6 @@ public class UserRepository implements PanacheRepository<Users> {
     public Optional<Users> findByEmail(String email) {
         return find("email", email).firstResultOptional();
     }
+    
     // Add custom methods if needed
 }

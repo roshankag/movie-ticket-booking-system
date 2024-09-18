@@ -2,7 +2,6 @@ package com.example.service;
 
 import com.example.entity.Bookings;
 import com.example.repository.BookingRepository;
-
 import jakarta.inject.Inject;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;

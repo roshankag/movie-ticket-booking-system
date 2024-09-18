@@ -6,7 +6,6 @@ import com.example.repository.UserRepository;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Optional;
@@ -17,15 +16,17 @@ public class UserService {
 
     @Inject
     UserRepository userRepository;
-    
- // Registration method
+
+    // Registration method
     @Transactional
     public String register(String username, String email, String password) {
+        // Check if username already exists
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new WebApplicationException("Username already exists", 400);
+            return "Username already exists";
         }
+        // Check if email already exists
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new WebApplicationException("Email already exists", 400);
+            return "Email already exists";
         }
 
         Users user = new Users();
@@ -42,7 +43,7 @@ public class UserService {
     public String login(String email, String password) {
         Optional<Users> user = userRepository.findByEmail(email);
         if (user.isEmpty() || !verifyPassword(password, user.get().getPassword())) {
-            throw new WebApplicationException("Invalid email or password", 401);
+            return "Invalid email or password";
         }
 
         // Generate JWT token
@@ -70,19 +71,34 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public Users createUser(Users user) {
-        userRepository.persist(user);
-        return user;
-    }
-
-    public Users updateUser(Users user) {
-        return userRepository.getEntityManager().merge(user);
-    }
-
-    public void deleteUser(Long id) {
-        Users user = userRepository.findById(id);
-        if (user != null) {
-            userRepository.delete(user);
+    public String createUser(Users user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            return "Username already exists";
         }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            return "Email already exists";
+        }
+        
+        userRepository.persist(user);
+        return "User created successfully!";
+    }
+
+    public String updateUser(Users user) {
+        Users existingUser = userRepository.findById(user.getId());
+        if (existingUser == null) {
+            return "User not found";
+        }
+
+        return userRepository.getEntityManager().merge(user) != null ? "User updated successfully!" : "Update failed";
+    }
+
+    public String deleteUser(Long id) {
+        Users user = userRepository.findById(id);
+        if (user == null) {
+            return "User not found";
+        }
+        
+        userRepository.delete(user);
+        return "User deleted successfully!";
     }
 }

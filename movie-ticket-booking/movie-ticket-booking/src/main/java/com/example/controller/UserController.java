@@ -87,7 +87,7 @@ public class UserController {
     public Response updateUser(@PathParam("id") Long id, Users user) {
         try {
             user.setId(id);
-            Users updatedUser = userService.updateUser(user);
+            String updatedUser = userService.updateUser(user);
             Map<String, Object> response = new HashMap<>();
             if (updatedUser != null) {
                 response.put("message", "User with ID " + id + " updated successfully.");
