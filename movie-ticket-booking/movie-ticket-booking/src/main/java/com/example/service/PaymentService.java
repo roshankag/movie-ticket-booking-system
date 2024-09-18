@@ -1,42 +1,58 @@
 package com.example.service;
 
-import java.util.List;
-
+import com.example.dto.PaymentDTO;
 import com.example.entity.Payments;
+import com.example.mapper.PaymentMapper;
 import com.example.repository.PaymentRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class PaymentService {
 
     @Inject
-    PaymentRepository paymentRepository;
+    private PaymentRepository paymentRepository;
 
-    public List<Payments> listAllPayments() {
-        return paymentRepository.listAll();
+    private final PaymentMapper paymentMapper = PaymentMapper.INSTANCE;
+
+    public List<PaymentDTO> listAllPayments() {
+        return paymentRepository.listAll().stream()
+                .map(paymentMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Payments findPaymentById(Long id) {
-        return paymentRepository.findById(id);
+    public PaymentDTO findPaymentById(Long id) {
+        Optional<Payments> payment = paymentRepository.findByIdOptional(id);
+        return payment.map(paymentMapper::toDTO).orElse(null);
     }
 
-    public Payments createPayment(Payments payment) {
+    @Transactional
+    public PaymentDTO createPayment(PaymentDTO paymentDTO) {
+        Payments payment = paymentMapper.toEntity(paymentDTO);
         paymentRepository.persist(payment);
-        return payment;
+        return paymentMapper.toDTO(payment);
     }
 
-    public Payments updatePayment(Payments payment) {
-        return paymentRepository.getEntityManager().merge(payment);
-    }
-
-    public boolean deletePayment(Long id) {
-        Payments payment = paymentRepository.findById(id);
-        if (payment != null) {
-            paymentRepository.delete(payment);
-            return true; // Deletion successful
+    @Transactional
+    public PaymentDTO updatePayment(PaymentDTO paymentDTO) {
+        Optional<Payments> existingPayment = paymentRepository.findByIdOptional(paymentDTO.getId());
+        if (existingPayment.isPresent()) {
+            Payments payment = paymentMapper.toEntity(paymentDTO);
+            paymentRepository.persist(payment);
+            return paymentMapper.toDTO(payment);
         }
-        return false; // Payment not found
+        return null;
+    }
+
+    @Transactional
+    public void deletePayment(Long id) {
+        if (paymentRepository.findByIdOptional(id).isPresent()) {
+            paymentRepository.deleteById(id);
+        }
     }
 }

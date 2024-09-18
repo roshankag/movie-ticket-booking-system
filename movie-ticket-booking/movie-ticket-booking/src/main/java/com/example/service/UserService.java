@@ -1,6 +1,8 @@
 package com.example.service;
 
+import com.example.dto.UserDTO;
 import com.example.entity.Users;
+import com.example.mapper.UserMapper;
 import com.example.repository.UserRepository;
 
 import io.smallrye.jwt.build.Jwt;
@@ -9,6 +11,8 @@ import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 @ApplicationScoped
@@ -16,6 +20,8 @@ public class UserService {
 
     @Inject
     UserRepository userRepository;
+    
+    private final UserMapper userMapper = UserMapper.INSTANCE;
 
     // Registration method
     @Transactional
@@ -63,42 +69,36 @@ public class UserService {
         return BCrypt.checkpw(plainPassword, hashedPassword);
     }
 
-    public List<Users> listAllUsers() {
-        return userRepository.listAll();
+    public List<UserDTO> listAllUsers() {
+        return userRepository.listAll().stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Users findUserById(Long id) {
-        return userRepository.findById(id);
-    }
-
-    public String createUser(Users user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            return "Username already exists";
-        }
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return "Email already exists";
-        }
-        
-        userRepository.persist(user);
-        return "User created successfully!";
-    }
-
-    public String updateUser(Users user) {
-        Users existingUser = userRepository.findById(user.getId());
-        if (existingUser == null) {
-            return "User not found";
-        }
-
-        return userRepository.getEntityManager().merge(user) != null ? "User updated successfully!" : "Update failed";
-    }
-
-    public String deleteUser(Long id) {
+    public UserDTO findUserById(Long id) {
         Users user = userRepository.findById(id);
-        if (user == null) {
-            return "User not found";
+        return userMapper.toDTO(user);
+    }
+
+    @Transactional
+    public UserDTO createUser(UserDTO userDTO) {
+        Users user = userMapper.toEntity(userDTO);
+        userRepository.persist(user);
+        return userMapper.toDTO(user);
+    }
+
+    @Transactional
+    public UserDTO updateUser(UserDTO userDTO) {
+        Users user = userMapper.toEntity(userDTO);
+        Users updatedUser = userRepository.getEntityManager().merge(user);
+        return userMapper.toDTO(updatedUser);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        Users user = userRepository.findById(id);
+        if (user != null) {
+            userRepository.delete(user);
         }
-        
-        userRepository.delete(user);
-        return "User deleted successfully!";
     }
 }

@@ -1,19 +1,27 @@
 package com.example.controller;
 
-import com.example.entity.Showtimes;
-import com.example.service.ShowtimeService;
-
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.example.dto.ShowtimesDTO;
+import com.example.mapper.ShowtimesMapper;
+import com.example.service.ShowtimeService;
+
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Path("/showtimes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -23,12 +31,14 @@ public class ShowtimeController {
     private static final Logger LOGGER = Logger.getLogger(ShowtimeController.class.getName());
 
     @Inject
-    ShowtimeService showtimeService;
+    ShowtimeService showtimesService;
+
+    private final ShowtimesMapper showtimesMapper = ShowtimesMapper.INSTANCE;
 
     @GET
     public Response getAllShowtimes() {
         try {
-            List<Showtimes> showtimes = showtimeService.listAllShowtimes();
+            List<ShowtimesDTO> showtimes = showtimesService.listAllShowtimes();
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Showtimes retrieved successfully.");
             response.put("data", showtimes);
@@ -36,7 +46,8 @@ public class ShowtimeController {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error retrieving showtimes", e);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Error retrieving showtimes: " + e.getMessage());
+            response.put("message", "Error occurred while retrieving showtimes: " + e.getMessage());
+            response.put("data", null);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }
@@ -45,37 +56,40 @@ public class ShowtimeController {
     @Path("/{id}")
     public Response getShowtimeById(@PathParam("id") Long id) {
         try {
-            Showtimes showtime = showtimeService.findShowtimeById(id);
+            ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);
             Map<String, Object> response = new HashMap<>();
-            if (showtime != null) {
+            if (showtimes != null) {
                 response.put("message", "Showtime with ID " + id + " retrieved successfully.");
-                response.put("data", showtime);
+                response.put("data", showtimes);
                 return Response.ok(response).build();
             } else {
                 response.put("message", "Showtime with ID " + id + " not found.");
+                response.put("data", null);
                 return Response.status(Response.Status.NOT_FOUND).entity(response).build();
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error retrieving showtime with ID: " + id, e);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Error retrieving showtime: " + e.getMessage());
+            response.put("message", "Error occurred while retrieving showtime: " + e.getMessage());
+            response.put("data", null);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }
 
     @POST
     @Transactional
-    public Response createShowtime(Showtimes showtime) {
+    public Response createShowtime(ShowtimesDTO showtimesDTO) {
         try {
-            showtimeService.createShowtime(showtime);
+            ShowtimesDTO createdShowtime = showtimesService.createShowtime(showtimesDTO);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Showtime created successfully with ID: " + showtime.getId());
-            response.put("data", showtime);
+            response.put("message", "Showtime created successfully with ID: " + createdShowtime.getId());
+            response.put("data", createdShowtime);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error creating showtime", e);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Error creating showtime: " + e.getMessage());
+            response.put("message", "Error occurred while creating showtime: " + e.getMessage());
+            response.put("data", null);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }
@@ -83,10 +97,10 @@ public class ShowtimeController {
     @PUT
     @Transactional
     @Path("/{id}")
-    public Response updateShowtime(@PathParam("id") Long id, Showtimes showtime) {
+    public Response updateShowtime(@PathParam("id") Long id, ShowtimesDTO showtimesDTO) {
         try {
-            showtime.setId(id);
-            Showtimes updatedShowtime = showtimeService.updateShowtime(showtime);
+            showtimesDTO.setId(id);
+            ShowtimesDTO updatedShowtime = showtimesService.updateShowtime(showtimesDTO);
             Map<String, Object> response = new HashMap<>();
             if (updatedShowtime != null) {
                 response.put("message", "Showtime with ID " + id + " updated successfully.");
@@ -94,12 +108,14 @@ public class ShowtimeController {
                 return Response.ok(response).build();
             } else {
                 response.put("message", "Showtime with ID " + id + " not found.");
+                response.put("data", null);
                 return Response.status(Response.Status.NOT_FOUND).entity(response).build();
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating showtime with ID: " + id, e);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Error updating showtime: " + e.getMessage());
+            response.put("message", "Error occurred while updating showtime: " + e.getMessage());
+            response.put("data", null);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }
@@ -109,10 +125,10 @@ public class ShowtimeController {
     @Path("/{id}")
     public Response deleteShowtime(@PathParam("id") Long id) {
         try {
-            Showtimes showtime = showtimeService.findShowtimeById(id);
+            ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);
             Map<String, Object> response = new HashMap<>();
-            if (showtime != null) {
-                showtimeService.deleteShowtime(id);
+            if (showtimes != null) {
+                showtimesService.deleteShowtime(id);
                 response.put("message", "Showtime with ID " + id + " deleted successfully.");
                 return Response.ok(response).build();
             } else {
@@ -122,7 +138,7 @@ public class ShowtimeController {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error deleting showtime with ID: " + id, e);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Error deleting showtime: " + e.getMessage());
+            response.put("message", "Error occurred while deleting showtime: " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }

@@ -1,39 +1,55 @@
 package com.example.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.example.dto.ShowtimesDTO;
 import com.example.entity.Showtimes;
+import com.example.mapper.ShowtimesMapper;
 import com.example.repository.ShowtimeRepository;
 
-import jakarta.inject.Inject;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.List;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class ShowtimeService {
 
     @Inject
-    ShowtimeRepository showtimeRepository;
+    ShowtimeRepository showtimesRepository;
 
-    public List<Showtimes> listAllShowtimes() {
-        return showtimeRepository.listAll();
+    private final ShowtimesMapper showtimesMapper = ShowtimesMapper.INSTANCE;
+
+    public List<ShowtimesDTO> listAllShowtimes() {
+        return showtimesRepository.listAll().stream()
+                .map(showtimesMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Showtimes findShowtimeById(Long id) {
-        return showtimeRepository.findById(id);
+    public ShowtimesDTO findShowtimeById(Long id) {
+        Showtimes showtimes = showtimesRepository.findById(id);
+        return showtimesMapper.toDTO(showtimes);
     }
 
-    public Showtimes createShowtime(Showtimes showtime) {
-        showtimeRepository.persist(showtime);
-        return showtime;
+    @Transactional
+    public ShowtimesDTO createShowtime(ShowtimesDTO showtimesDTO) {
+        Showtimes showtimes = showtimesMapper.toEntity(showtimesDTO);
+        showtimesRepository.persist(showtimes);
+        return showtimesMapper.toDTO(showtimes);
     }
 
-    public Showtimes updateShowtime(Showtimes showtime) {
-        return showtimeRepository.getEntityManager().merge(showtime);
+    @Transactional
+    public ShowtimesDTO updateShowtime(ShowtimesDTO showtimesDTO) {
+        Showtimes showtimes = showtimesMapper.toEntity(showtimesDTO);
+        Showtimes updatedShowtime = showtimesRepository.getEntityManager().merge(showtimes);
+        return showtimesMapper.toDTO(updatedShowtime);
     }
 
+    @Transactional
     public void deleteShowtime(Long id) {
-        Showtimes showtime = showtimeRepository.findById(id);
-        if (showtime != null) {
-            showtimeRepository.delete(showtime);
+        Showtimes showtimes = showtimesRepository.findById(id);
+        if (showtimes != null) {
+            showtimesRepository.delete(showtimes);
         }
     }
 }

@@ -1,12 +1,15 @@
 package com.example.service;
 
+import com.example.dto.SeatsDTO;
 import com.example.entity.Seats;
+import com.example.mapper.SeatsMapper;
 import com.example.repository.SeatRepository;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class SeatService {
@@ -14,30 +17,34 @@ public class SeatService {
     @Inject
     SeatRepository seatRepository;
 
-    public List<Seats> listAllSeats() {
-        return seatRepository.listAll();
+    private final SeatsMapper seatsMapper = SeatsMapper.INSTANCE;
+
+    public List<SeatsDTO> listAllSeats() {
+        return seatRepository.listAll().stream()
+                .map(seatsMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Seats findSeatById(Long id) {
-        return seatRepository.findById(id);
+    public SeatsDTO findSeatById(Long id) {
+        Seats seat = seatRepository.findById(id);
+        return seatsMapper.toDTO(seat);
     }
 
     @Transactional
-    public Seats createSeat(Seats seat) {
+    public SeatsDTO createSeat(SeatsDTO seatDTO) {
+        Seats seat = seatsMapper.toEntity(seatDTO);
         if (seat.getId() == null) {
-            // If the seat ID is not set, it should be created.
             seatRepository.persist(seat);
-            return seat;
         } else {
-            // For update, ensure the entity is managed.
-            return updateSeat(seat);
+            seat = seatRepository.getEntityManager().merge(seat);
         }
+        return seatsMapper.toDTO(seat);
     }
 
     @Transactional
-    public Seats updateSeat(Seats seat) {
-        // Use the repository to merge the seat.
-        return seatRepository.getEntityManager().merge(seat);
+    public SeatsDTO updateSeat(SeatsDTO seatDTO) {
+        Seats seat = seatsMapper.toEntity(seatDTO);
+        return seatsMapper.toDTO(seatRepository.getEntityManager().merge(seat));
     }
 
     @Transactional

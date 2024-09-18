@@ -1,6 +1,7 @@
 package com.example.controller;
 
-import com.example.entity.Movies;
+import com.example.dto.MovieDTO;
+import com.example.mapper.MovieMapper;
 import com.example.service.MovieService;
 
 import jakarta.inject.Inject;
@@ -20,10 +21,12 @@ public class MovieController {
     @Inject
     MovieService movieService;
 
+    private final MovieMapper movieMapper = MovieMapper.INSTANCE;
+
     @GET
     public Response getAllMovies() {
         try {
-            List<Movies> movies = movieService.listAllMovies();
+            List<MovieDTO> movies = movieService.listAllMovies();
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Movies retrieved successfully.");
             response.put("data", movies);
@@ -40,7 +43,7 @@ public class MovieController {
     @Path("/{id}")
     public Response getMovieById(@PathParam("id") Long id) {
         try {
-            Movies movie = movieService.findMovieById(id);
+            MovieDTO movie = movieService.findMovieById(id);
             Map<String, Object> response = new HashMap<>();
             if (movie != null) {
                 response.put("message", "Movie with ID " + id + " retrieved successfully.");
@@ -61,12 +64,12 @@ public class MovieController {
 
     @POST
     @Transactional
-    public Response createMovie(Movies movie) {
+    public Response createMovie(MovieDTO movieDTO) {
         try {
-            movieService.createMovie(movie);
+            MovieDTO createdMovie = movieService.createMovie(movieDTO);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Movie created successfully with ID: " + movie.getId());
-            response.put("data", movie);
+            response.put("message", "Movie created successfully with ID: " + createdMovie.getId());
+            response.put("data", createdMovie);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
@@ -79,10 +82,10 @@ public class MovieController {
     @PUT
     @Transactional
     @Path("/{id}")
-    public Response updateMovie(@PathParam("id") Long id, Movies movie) {
+    public Response updateMovie(@PathParam("id") Long id, MovieDTO movieDTO) {
         try {
-            movie.setId(id);
-            Movies updatedMovie = movieService.updateMovie(movie);
+            movieDTO.setId(id);
+            MovieDTO updatedMovie = movieService.updateMovie(movieDTO);
             Map<String, Object> response = new HashMap<>();
             if (updatedMovie != null) {
                 response.put("message", "Movie with ID " + id + " updated successfully.");
@@ -106,15 +109,20 @@ public class MovieController {
     @Path("/{id}")
     public Response deleteMovie(@PathParam("id") Long id) {
         try {
-            movieService.deleteMovie(id);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Movie with ID " + id + " deleted successfully.");
-            response.put("data", null);  // Optional, can be removed if not needed
-            return Response.ok(response).build();  // Use Response.ok() to return a body
+            MovieDTO movie = movieService.findMovieById(id);
+            if (movie != null) {
+                movieService.deleteMovie(id);
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Movie with ID " + id + " deleted successfully.");
+                return Response.ok(response).build();
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Movie with ID " + id + " not found.");
+                return Response.status(Response.Status.NOT_FOUND).entity(response).build();
+            }
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Error occurred while deleting movie: " + e.getMessage());
-            response.put("data", null);  // Optional, can be removed if not needed
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }

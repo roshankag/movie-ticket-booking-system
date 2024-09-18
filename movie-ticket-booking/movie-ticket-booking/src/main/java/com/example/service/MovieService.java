@@ -1,10 +1,13 @@
 package com.example.service;
 
+import com.example.dto.MovieDTO;
 import com.example.entity.Movies;
+import com.example.mapper.MovieMapper;
 import com.example.repository.MovieRepository;
 import jakarta.inject.Inject;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MovieService {
@@ -12,21 +15,29 @@ public class MovieService {
     @Inject
     MovieRepository movieRepository;
 
-    public List<Movies> listAllMovies() {
-        return movieRepository.listAll();
+    private final MovieMapper movieMapper = MovieMapper.INSTANCE;
+
+    public List<MovieDTO> listAllMovies() {
+        return movieRepository.listAll().stream()
+            .map(movieMapper::toDto)
+            .collect(Collectors.toList());
     }
 
-    public Movies findMovieById(Long id) {
-        return movieRepository.findById(id);
+    public MovieDTO findMovieById(Long id) {
+        Movies movie = movieRepository.findById(id);
+        return movie != null ? movieMapper.toDto(movie) : null;
     }
 
-    public Movies createMovie(Movies movie) {
+    public MovieDTO createMovie(MovieDTO movieDTO) {
+        Movies movie = movieMapper.toEntity(movieDTO);
         movieRepository.persist(movie);
-        return movie;
+        return movieMapper.toDto(movie);
     }
 
-    public Movies updateMovie(Movies movie) {
-        return movieRepository.getEntityManager().merge(movie);
+    public MovieDTO updateMovie(MovieDTO movieDTO) {
+        Movies movie = movieMapper.toEntity(movieDTO);
+        Movies updatedMovie = movieRepository.getEntityManager().merge(movie);
+        return movieMapper.toDto(updatedMovie);
     }
 
     public void deleteMovie(Long id) {

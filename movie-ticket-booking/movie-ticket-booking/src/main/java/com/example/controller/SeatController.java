@@ -1,7 +1,8 @@
 package com.example.controller;
 
-import com.example.entity.Seats;
+import com.example.dto.SeatsDTO;
 import com.example.service.SeatService;
+import com.example.mapper.SeatsMapper;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,10 +26,12 @@ public class SeatController {
     @Inject
     SeatService seatService;
 
+    private final SeatsMapper seatsMapper = SeatsMapper.INSTANCE;
+
     @GET
     public Response getAllSeats() {
         try {
-            List<Seats> seats = seatService.listAllSeats();
+            List<SeatsDTO> seats = seatService.listAllSeats();
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Seats retrieved successfully.");
             response.put("data", seats);
@@ -46,7 +49,7 @@ public class SeatController {
     @Path("/{id}")
     public Response getSeatById(@PathParam("id") Long id) {
         try {
-            Seats seat = seatService.findSeatById(id);
+            SeatsDTO seat = seatService.findSeatById(id);
             Map<String, Object> response = new HashMap<>();
             if (seat != null) {
                 response.put("message", "Seat with ID " + id + " retrieved successfully.");
@@ -68,12 +71,12 @@ public class SeatController {
 
     @POST
     @Transactional
-    public Response createSeat(Seats seat) {
+    public Response createSeat(SeatsDTO seatDTO) {
         try {
-            seatService.createSeat(seat);
+            SeatsDTO createdSeat = seatService.createSeat(seatDTO);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Seat created successfully with ID: " + seat.getId());
-            response.put("data", seat);
+            response.put("message", "Seat created successfully with ID: " + createdSeat.getId());
+            response.put("data", createdSeat);
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error creating seat", e);
@@ -87,10 +90,10 @@ public class SeatController {
     @PUT
     @Transactional
     @Path("/{id}")
-    public Response updateSeat(@PathParam("id") Long id, Seats seat) {
+    public Response updateSeat(@PathParam("id") Long id, SeatsDTO seatDTO) {
         try {
-            seat.setId(id);
-            Seats updatedSeat = seatService.updateSeat(seat);
+            seatDTO.setId(id);
+            SeatsDTO updatedSeat = seatService.updateSeat(seatDTO);
             Map<String, Object> response = new HashMap<>();
             if (updatedSeat != null) {
                 response.put("message", "Seat with ID " + id + " updated successfully.");
@@ -115,7 +118,7 @@ public class SeatController {
     @Path("/{id}")
     public Response deleteSeat(@PathParam("id") Long id) {
         try {
-            Seats seat = seatService.findSeatById(id);
+            SeatsDTO seat = seatService.findSeatById(id);
             Map<String, Object> response = new HashMap<>();
             if (seat != null) {
                 seatService.deleteSeat(id);
