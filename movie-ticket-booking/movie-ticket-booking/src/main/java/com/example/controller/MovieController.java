@@ -5,19 +5,20 @@ import java.util.List;
 import java.util.Map;
 
 import com.example.dto.MovieDTO;
-import com.example.mapper.MovieMapper;
 import com.example.service.MovieService;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -29,12 +30,22 @@ public class MovieController {
     @Inject
     MovieService movieService;
 
-    private final MovieMapper movieMapper = MovieMapper.INSTANCE;
-
+    /**
+     * Retrieve a paginated and sorted list of movies.
+     * 
+     * @param page The page number to retrieve (0-based). Defaults to 0.
+     * @param size The number of items per page. Defaults to 10.
+     * @param sortBy The field to sort by. Defaults to "title".
+     * @param ascending Whether to sort in ascending order. Defaults to true.
+     * @return A response containing a message and the list of movies.
+     */
     @GET
-    public Response getAllMovies() {
+    public Response getAllMovies(@QueryParam("page") @DefaultValue("0") int page,
+                                 @QueryParam("size") @DefaultValue("10") int size,
+                                 @QueryParam("sortBy") @DefaultValue("title") String sortBy,
+                                 @QueryParam("ascending") @DefaultValue("true") boolean ascending) {
         try {
-            List<MovieDTO> movies = movieService.listAllMovies();
+            List<MovieDTO> movies = movieService.listAllMovies(page, size, sortBy, ascending);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Movies retrieved successfully.");
             response.put("data", movies);
@@ -47,6 +58,12 @@ public class MovieController {
         }
     }
 
+    /**
+     * Retrieve a movie by its ID.
+     * 
+     * @param id The ID of the movie to retrieve.
+     * @return A response containing a message and the movie details if found, otherwise a not found status.
+     */
     @GET
     @Path("/{id}")
     public Response getMovieById(@PathParam("id") Long id) {
@@ -70,6 +87,12 @@ public class MovieController {
         }
     }
 
+    /**
+     * Create a new movie.
+     * 
+     * @param movieDTO The details of the movie to create.
+     * @return A response containing a message and the created movie details.
+     */
     @POST
     @Transactional
     public Response createMovie(MovieDTO movieDTO) {
@@ -87,6 +110,13 @@ public class MovieController {
         }
     }
 
+    /**
+     * Update an existing movie by its ID.
+     * 
+     * @param id The ID of the movie to update.
+     * @param movieDTO The updated movie details.
+     * @return A response containing a message and the updated movie details if found, otherwise a not found status.
+     */
     @PUT
     @Transactional
     @Path("/{id}")
@@ -112,13 +142,18 @@ public class MovieController {
         }
     }
 
+    /**
+     * Delete a movie by its ID.
+     * 
+     * @param id The ID of the movie to delete.
+     * @return A response containing a message confirming deletion or indicating that the movie was not found.
+     */
     @DELETE
     @Transactional
     @Path("/{id}")
     public Response deleteMovie(@PathParam("id") Long id) {
         try {
-            MovieDTO movie = movieService.findMovieById(id);
-            if (movie != null) {
+            if (movieService.existsById(id)) {
                 movieService.deleteMovie(id);
                 Map<String, Object> response = new HashMap<>();
                 response.put("message", "Movie with ID " + id + " deleted successfully.");

@@ -7,19 +7,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.example.dto.ShowtimesDTO;
-import com.example.mapper.ShowtimesMapper;
 import com.example.service.ShowtimeService;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -33,13 +34,26 @@ public class ShowtimeController {
     @Inject
     ShowtimeService showtimesService;
 
-    private final ShowtimesMapper showtimesMapper = ShowtimesMapper.INSTANCE;
-
+    /**
+     * Retrieves all showtimes with optional pagination.
+     * 
+     * @return A JSON response with a message and a list of ShowtimesDTO objects.
+     */
     @GET
-//    @RolesAllowed({"admin", "user"})  // Both 'admin' and 'user' roles can view all showtimes
-    public Response getAllShowtimes() {
+    public Response getAllShowtimes(
+        @QueryParam("page") @DefaultValue("0") int pageNumber,
+        @QueryParam("size") @DefaultValue("10") int pageSize) {
+        
         try {
-            List<ShowtimesDTO> showtimes = showtimesService.listAllShowtimes();
+            List<ShowtimesDTO> showtimes;
+            
+            // If pageSize is less than or equal to zero, fetch all showtimes
+            if (pageSize <= 0) {
+                showtimes = showtimesService.listAllShowtimes(0, Integer.MAX_VALUE);
+            } else {
+                showtimes = showtimesService.listAllShowtimes(pageNumber, pageSize);
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Showtimes retrieved successfully.");
             response.put("data", showtimes);
@@ -53,9 +67,14 @@ public class ShowtimeController {
         }
     }
 
+    /**
+     * Retrieves a specific showtime by its ID.
+     * 
+     * @param id The ID of the showtime to retrieve.
+     * @return A JSON response with a message and the ShowtimesDTO object if found, otherwise an error message.
+     */
     @GET
     @Path("/{id}")
-  // @RolesAllowed({"admin", "user"})  // Both roles can view a single showtime by ID
     public Response getShowtimeById(@PathParam("id") Long id) {
         try {
             ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);
@@ -78,9 +97,14 @@ public class ShowtimeController {
         }
     }
 
+    /**
+     * Creates a new showtime.
+     * 
+     * @param showtimesDTO The DTO containing details of the showtime to be created.
+     * @return A JSON response with a message and the created ShowtimesDTO object.
+     */
     @POST
     @Transactional
-  //  @RolesAllowed("admin")  // Only 'admin' role can create new showtimes
     public Response createShowtime(ShowtimesDTO showtimesDTO) {
         try {
             ShowtimesDTO createdShowtime = showtimesService.createShowtime(showtimesDTO);
@@ -97,10 +121,16 @@ public class ShowtimeController {
         }
     }
 
+    /**
+     * Updates an existing showtime.
+     * 
+     * @param id The ID of the showtime to update.
+     * @param showtimesDTO The DTO containing updated showtime details.
+     * @return A JSON response with a message and the updated ShowtimesDTO object if found, otherwise an error message.
+     */
     @PUT
     @Transactional
     @Path("/{id}")
- //   @RolesAllowed("admin")  // Only 'admin' role can update showtimes
     public Response updateShowtime(@PathParam("id") Long id, ShowtimesDTO showtimesDTO) {
         try {
             showtimesDTO.setId(id);
@@ -124,10 +154,15 @@ public class ShowtimeController {
         }
     }
 
+    /**
+     * Deletes a specific showtime by its ID.
+     * 
+     * @param id The ID of the showtime to delete.
+     * @return A JSON response with a message confirming deletion or an error message if the showtime was not found.
+     */
     @DELETE
     @Transactional
     @Path("/{id}")
-  //  @RolesAllowed("admin")  // Only 'admin' role can delete showtimes
     public Response deleteShowtime(@PathParam("id") Long id) {
         try {
             ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);

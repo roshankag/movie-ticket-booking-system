@@ -31,6 +31,10 @@ public class BookingController {
 
     private final BookingMapper bookingMapper = BookingMapper.INSTANCE;
 
+    /**
+     * Retrieve all bookings.
+     * @return Response with a list of all bookings.
+     */
     @GET
     public Response getAllBookings() {
         try {
@@ -47,6 +51,11 @@ public class BookingController {
         }
     }
 
+    /**
+     * Retrieve a specific booking by its ID.
+     * @param id Booking ID
+     * @return Response with the booking data if found, otherwise a not found message.
+     */
     @GET
     @Path("/{id}")
     public Response getBookingById(@PathParam("id") Long id) {
@@ -71,6 +80,11 @@ public class BookingController {
         }
     }
 
+    /**
+     * Create a new booking.
+     * @param bookingDTO Booking data transfer object containing booking details.
+     * @return Response with the created booking.
+     */
     @POST
     @Transactional
     public Response createBooking(BookingDTO bookingDTO) {
@@ -80,6 +94,11 @@ public class BookingController {
             response.put("message", "Booking created successfully.");
             response.put("data", createdBooking);
             return Response.status(Response.Status.CREATED).entity(response).build();
+        } catch (IllegalStateException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());  // More specific error
+            errorResponse.put("data", null);
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorResponse).build();
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("message", "Error occurred while creating booking.");
@@ -88,6 +107,12 @@ public class BookingController {
         }
     }
 
+    /**
+     * Update an existing booking.
+     * @param id Booking ID
+     * @param bookingDTO Booking data transfer object containing updated details.
+     * @return Response with the updated booking if successful, or a not found message.
+     */
     @PUT
     @Transactional
     @Path("/{id}")
@@ -106,6 +131,11 @@ public class BookingController {
                 response.put("data", null);
                 return Response.status(Response.Status.NOT_FOUND).entity(response).build();
             }
+        } catch (IllegalStateException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());  // More specific error
+            errorResponse.put("data", null);
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorResponse).build();
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("message", "Error occurred while updating booking.");
@@ -114,25 +144,25 @@ public class BookingController {
         }
     }
 
+    /**
+     * Delete a booking by its ID.
+     * @param id Booking ID
+     * @return Response indicating the result of the deletion operation.
+     */
     @DELETE
-    @Transactional
     @Path("/{id}")
+    @Transactional
     public Response deleteBooking(@PathParam("id") Long id) {
         try {
-            BookingDTO booking = bookingService.findBookingById(id);
-            if (booking != null) {
-                bookingService.deleteBooking(id);
-                Map<String, Object> response = new HashMap<>();
-                response.put("message", "Booking deleted successfully.");
-                return Response.ok(response).build();
-            } else {
-                Map<String, Object> response = new HashMap<>();
-                response.put("message", "Booking not found.");
-                return Response.status(Response.Status.NOT_FOUND).entity(response).build();
-            }
+            bookingService.deleteBooking(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Booking deleted successfully.");
+            response.put("data", null);
+            return Response.ok(response).build();
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("message", "Error occurred while deleting booking.");
+            errorResponse.put("data", null);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
         }
     }

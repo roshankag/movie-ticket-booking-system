@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.example.dto.SeatsDTO;
-import com.example.mapper.SeatsMapper;
 import com.example.service.SeatService;
 
 import jakarta.inject.Inject;
@@ -33,10 +32,11 @@ public class SeatController {
     @Inject
     SeatService seatService;
 
-    private final SeatsMapper seatsMapper = SeatsMapper.INSTANCE;
-
+    /**
+     * Retrieves a list of all seats.
+     * @return Response with a message and a list of all seats.
+     */
     @GET
-//    @RolesAllowed({"admin", "user"}) // Allow 'admin' and 'user' roles to access this endpoint
     public Response getAllSeats() {
         try {
             List<SeatsDTO> seats = seatService.listAllSeats();
@@ -53,9 +53,13 @@ public class SeatController {
         }
     }
 
+    /**
+     * Retrieves a seat by its ID.
+     * @param id ID of the seat to be retrieved.
+     * @return Response with a message and the seat details, or an error message if not found.
+     */
     @GET
     @Path("/{id}")
-//    @RolesAllowed({"admin", "user"}) // Allow 'admin' and 'user' roles to access this endpoint
     public Response getSeatById(@PathParam("id") Long id) {
         try {
             SeatsDTO seat = seatService.findSeatById(id);
@@ -78,9 +82,13 @@ public class SeatController {
         }
     }
 
+    /**
+     * Creates a new seat.
+     * @param seatDTO DTO representing the seat to be created.
+     * @return Response with a message and the created seat details.
+     */
     @POST
     @Transactional
-//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response createSeat(SeatsDTO seatDTO) {
         try {
             SeatsDTO createdSeat = seatService.createSeat(seatDTO);
@@ -97,10 +105,15 @@ public class SeatController {
         }
     }
 
+    /**
+     * Updates an existing seat.
+     * @param id ID of the seat to be updated.
+     * @param seatDTO DTO representing the updated seat details.
+     * @return Response with a message and the updated seat details, or an error message if not found.
+     */
     @PUT
     @Transactional
     @Path("/{id}")
-//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response updateSeat(@PathParam("id") Long id, SeatsDTO seatDTO) {
         try {
             seatDTO.setId(id);
@@ -124,10 +137,14 @@ public class SeatController {
         }
     }
 
+    /**
+     * Deletes a seat by its ID.
+     * @param id ID of the seat to be deleted.
+     * @return Response with a message indicating success or failure.
+     */
     @DELETE
     @Transactional
     @Path("/{id}")
-//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response deleteSeat(@PathParam("id") Long id) {
         try {
             SeatsDTO seat = seatService.findSeatById(id);
@@ -144,6 +161,62 @@ public class SeatController {
             LOGGER.log(Level.SEVERE, "Error deleting seat with ID: " + id, e);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Error occurred while deleting seat: " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+        }
+    }
+
+    /**
+     * Books a seat by its ID.
+     * @param seatId ID of the seat to be booked.
+     * @return Response with a message and the booked seat details, or an error message if the seat cannot be booked.
+     */
+    @POST
+    @Path("/{id}/book")
+    @Transactional
+    public Response bookSeat(@PathParam("id") Long seatId) {
+        try {
+            SeatsDTO bookedSeat = seatService.bookSeat(seatId);
+            Map<String, Object> response = new HashMap<>();
+            if (bookedSeat != null) {
+                response.put("message", "Seat with ID " + seatId + " booked successfully.");
+                response.put("data", bookedSeat);
+                return Response.ok(response).build();
+            } else {
+                response.put("message", "Seat with ID " + seatId + " could not be booked.");
+                return Response.status(Response.Status.BAD_REQUEST).entity(response).build();
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error booking seat with ID: " + seatId, e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Error occurred while booking seat: " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+        }
+    }
+
+    /**
+     * Releases a booked seat by its ID.
+     * @param seatId ID of the seat to be released.
+     * @return Response with a message and the released seat details, or an error message if the seat cannot be released.
+     */
+    @POST
+    @Path("/{id}/release")
+    @Transactional
+    public Response releaseSeat(@PathParam("id") Long seatId) {
+        try {
+            SeatsDTO releasedSeat = seatService.releaseSeat(seatId);
+            Map<String, Object> response = new HashMap<>();
+            if (releasedSeat != null) {
+                response.put("message", "Seat with ID " + seatId + " released successfully.");
+                response.put("data", releasedSeat);
+                return Response.ok(response).build();
+            } else {
+                response.put("message", "Seat with ID " + seatId + " could not be released.");
+                return Response.status(Response.Status.BAD_REQUEST).entity(response).build();
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error releasing seat with ID: " + seatId, e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Error occurred while releasing seat: " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
         }
     }
