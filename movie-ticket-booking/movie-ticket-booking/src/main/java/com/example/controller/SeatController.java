@@ -1,20 +1,27 @@
 package com.example.controller;
 
-import com.example.dto.SeatsDTO;
-import com.example.service.SeatService;
-import com.example.mapper.SeatsMapper;
-
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.example.dto.SeatsDTO;
+import com.example.mapper.SeatsMapper;
+import com.example.service.SeatService;
+
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Path("/seats")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,6 +36,7 @@ public class SeatController {
     private final SeatsMapper seatsMapper = SeatsMapper.INSTANCE;
 
     @GET
+//    @RolesAllowed({"admin", "user"}) // Allow 'admin' and 'user' roles to access this endpoint
     public Response getAllSeats() {
         try {
             List<SeatsDTO> seats = seatService.listAllSeats();
@@ -47,6 +55,7 @@ public class SeatController {
 
     @GET
     @Path("/{id}")
+//    @RolesAllowed({"admin", "user"}) // Allow 'admin' and 'user' roles to access this endpoint
     public Response getSeatById(@PathParam("id") Long id) {
         try {
             SeatsDTO seat = seatService.findSeatById(id);
@@ -71,6 +80,7 @@ public class SeatController {
 
     @POST
     @Transactional
+//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response createSeat(SeatsDTO seatDTO) {
         try {
             SeatsDTO createdSeat = seatService.createSeat(seatDTO);
@@ -90,6 +100,7 @@ public class SeatController {
     @PUT
     @Transactional
     @Path("/{id}")
+//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response updateSeat(@PathParam("id") Long id, SeatsDTO seatDTO) {
         try {
             seatDTO.setId(id);
@@ -116,6 +127,7 @@ public class SeatController {
     @DELETE
     @Transactional
     @Path("/{id}")
+//    @RolesAllowed("admin") // Only 'admin' role can access this endpoint
     public Response deleteSeat(@PathParam("id") Long id) {
         try {
             SeatsDTO seat = seatService.findSeatById(id);

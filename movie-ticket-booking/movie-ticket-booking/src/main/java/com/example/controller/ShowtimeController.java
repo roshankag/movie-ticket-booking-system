@@ -36,6 +36,7 @@ public class ShowtimeController {
     private final ShowtimesMapper showtimesMapper = ShowtimesMapper.INSTANCE;
 
     @GET
+//    @RolesAllowed({"admin", "user"})  // Both 'admin' and 'user' roles can view all showtimes
     public Response getAllShowtimes() {
         try {
             List<ShowtimesDTO> showtimes = showtimesService.listAllShowtimes();
@@ -54,6 +55,7 @@ public class ShowtimeController {
 
     @GET
     @Path("/{id}")
+  // @RolesAllowed({"admin", "user"})  // Both roles can view a single showtime by ID
     public Response getShowtimeById(@PathParam("id") Long id) {
         try {
             ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);
@@ -78,6 +80,7 @@ public class ShowtimeController {
 
     @POST
     @Transactional
+  //  @RolesAllowed("admin")  // Only 'admin' role can create new showtimes
     public Response createShowtime(ShowtimesDTO showtimesDTO) {
         try {
             ShowtimesDTO createdShowtime = showtimesService.createShowtime(showtimesDTO);
@@ -97,6 +100,7 @@ public class ShowtimeController {
     @PUT
     @Transactional
     @Path("/{id}")
+ //   @RolesAllowed("admin")  // Only 'admin' role can update showtimes
     public Response updateShowtime(@PathParam("id") Long id, ShowtimesDTO showtimesDTO) {
         try {
             showtimesDTO.setId(id);
@@ -123,6 +127,7 @@ public class ShowtimeController {
     @DELETE
     @Transactional
     @Path("/{id}")
+  //  @RolesAllowed("admin")  // Only 'admin' role can delete showtimes
     public Response deleteShowtime(@PathParam("id") Long id) {
         try {
             ShowtimesDTO showtimes = showtimesService.findShowtimeById(id);

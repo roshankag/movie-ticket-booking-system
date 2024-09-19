@@ -36,6 +36,7 @@ public class UserController {
     private final UserMapper userMapper = UserMapper.INSTANCE;
 
     @GET
+//    @RolesAllowed({"admin", "user"})  // Both 'admin' and 'user' roles can view all users
     public Response getAllUsers() {
         try {
             List<UserDTO> users = userService.listAllUsers();
@@ -54,6 +55,7 @@ public class UserController {
 
     @GET
     @Path("/{id}")
+//    @RolesAllowed({"admin", "user"})  // Both roles can view a single user by ID
     public Response getUserById(@PathParam("id") Long id) {
         try {
             UserDTO user = userService.findUserById(id);
@@ -78,6 +80,7 @@ public class UserController {
 
     @POST
     @Transactional
+//    @RolesAllowed("admin")  // Only 'admin' role can create new users
     public Response createUser(UserDTO userDTO) {
         try {
             UserDTO createdUser = userService.createUser(userDTO);
@@ -97,6 +100,7 @@ public class UserController {
     @PUT
     @Transactional
     @Path("/{id}")
+//    @RolesAllowed("admin")  // Only 'admin' role can update users
     public Response updateUser(@PathParam("id") Long id, UserDTO userDTO) {
         try {
             userDTO.setId(id);
@@ -123,6 +127,7 @@ public class UserController {
     @DELETE
     @Transactional
     @Path("/{id}")
+//    @RolesAllowed("admin")  // Only 'admin' role can delete users
     public Response deleteUser(@PathParam("id") Long id) {
         try {
             UserDTO user = userService.findUserById(id);
